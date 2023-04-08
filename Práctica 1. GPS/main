@@ -1,1 +1,55 @@
-Practica1
+#include <SoftwareSerial.h>  //incluimos SoftwareSerial
+  #include <TinyGPS.h>         //incluimos TinyGPS
+
+  TinyGPS gps;  //Declaramos el objeto GPS
+  SoftwareSerial serialgps(4,3);      //Declaramos el pin 4 (Tx del GPS) y 3 (Rx del GPS)
+   
+  //Declaramos la variables para la obtención de datos
+  int year;
+  byte month, day, hour, minute, second, hundredths;
+  unsigned long chars;
+  unsigned short sentences, failed_checksum;
+
+  void setup()
+  {
+   Serial.begin(57600);  //Iniciamos el puerto serie
+   serialgps.begin(9600); //Iniciamos el puerto serie del gps
+   
+   //Imprimimos en el monitor serial:
+   Serial.println("");
+   Serial.println("GPS Iniciando...");
+   Serial.println(" ---Buscando senal--- ");  
+   Serial.println("");
+  }
+
+  void loop()
+  {
+   while(serialgps.available()) 
+   {
+    
+    int c = serialgps.read(); 
+    if(gps.encode(c)) 
+    {
+     float latitude, longitude;
+     gps.f_get_position(&latitude, &longitude);
+     Serial.print("Latitud: ");Serial.println(latitude,5);
+      
+    Serial.print("Longitud: ");Serial.println(longitude,5);
+
+     gps.crack_datetime(&year,&month,&day,&hour,&minute,&second,&hundredths);
+     Serial.print("Fecha: "); Serial.print(day, DEC); Serial.print("/"); 
+     Serial.print(month, DEC); Serial.print("/"); Serial.print(year);
+     int hora=hour+6;
+     if(hora>12){hora=hora-12;}
+
+     Serial.print(" Hora: "); Serial.print(hora, DEC); Serial.print(":"); 
+     Serial.print(minute, DEC); Serial.print(":"); Serial.print(second, DEC); 
+     Serial.print("."); Serial.println(hundredths, DEC);
+     Serial.print("Altitud (metros): "); Serial.println(gps.f_altitude()); 
+     
+     Serial.println();
+     gps.stats(&chars, &sentences, &failed_checksum);
+     delay(15000);//este para las 5 horas un retraso de 16 seg. para reducir el numero de muestras 
+    }
+   }
+  }
