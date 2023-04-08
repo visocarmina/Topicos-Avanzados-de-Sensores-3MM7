@@ -1,1 +1,42 @@
-Practica2
+#include "Adafruit_VL53L0X.h"
+
+Adafruit_VL53L0X lox = Adafruit_VL53L0X();
+
+float EMA=0;
+float temp=0;
+void setup() {
+  Serial.begin(9600);
+
+
+  while (! Serial) {
+    delay(1);
+  }
+  
+  //Serial.println("----- VL53L0X -----");
+  if (!lox.begin()) {
+    Serial.println(F("error de inicializacion"));
+    while(1);
+  }
+  
+  Serial.println(F("VL53L0X ejemplo rango\n\n")); 
+}
+
+
+void loop() {
+  VL53L0X_RangingMeasurementData_t measure;
+  temp=measure.RangeMilliMeter;
+    
+  //Serial.print("Leyendo distancia ... ");
+  lox.rangingTest(&measure, false); 
+    EMA=0.25*measure.RangeMilliMeter+(1-0.25)*EMA;
+
+  if (measure.RangeStatus != 4) {  
+    //Serial.print("Distancia  (mm): "); 
+    Serial.println(temp);    //Serial.print("Filtro EMA(mm): ");Serial.println(EMA);
+
+  } else {
+    Serial.println(" fuera de rango ");
+    EMA=0;
+  }
+  delay(1000);
+}
